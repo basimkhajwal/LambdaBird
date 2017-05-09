@@ -1,7 +1,7 @@
 {
     "version": "1.0.0",
     "summary": "A flappy bird clone written in Elm",
-    "repository": "https://github.com/basimkhajwal/LambdaBird.git",
+    "repository": "https://github.com/local/local.git",
     "license": "BSD3",
     "source-directories": [
         "."
