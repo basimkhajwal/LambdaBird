@@ -3,6 +3,7 @@ import Html exposing (Html, program)
 import Task
 import Window
 import AnimationFrame
+import Time exposing (..)
 import Mouse
 
 import Color exposing (..)
@@ -22,14 +23,20 @@ canvasSize =
 birdSpeed : Float
 birdSpeed = 100
 
+birdJump : Float
+birdJump = 250
+
 gravity : Float
-gravity = 100
+gravity = 300
 
 birdSize : Float
 birdSize = 30
 
 pipeWidth : Float
 pipeWidth = 50
+
+pipeSpacing : Float
+pipeSpacing = 200
 
 pipeGreen : Color
 pipeGreen = rgb 20 200 20
@@ -111,6 +118,7 @@ type Msg
     = NoOp
     | Resize Window.Size
     | MouseClick Mouse.Position
+    | GameUpdate Time
     | StartGame
 
 -- VIEW
@@ -141,6 +149,7 @@ drawBird : Bird -> Form
 drawBird bird = 
     rect birdSize birdSize
     |> filled red
+    |> move (bird.x, bird.y)
 
 gameModel : PlayState -> List Form
 gameModel state = 
@@ -181,11 +190,32 @@ update msg model =
         StartGame -> ({ model | state = Play initGame}, Cmd.none)
         MouseClick pos ->
             case model.state of
-                Menu -> (model, Task.perform identity (Task.succeed StartGame))
+                Menu -> update StartGame model
                 Play playState ->
-                    ({ model | state = Play {playState | }}, Cmd.none)
-                    
+                    let
+                        oldBird = playState.bird
+                        newBird = { oldBird | dy = birdJump }
+                        newPlayState = { playState | bird = newBird }
+                    in
+                        ({ model | state = Play newPlayState }, Cmd.none)
+        GameUpdate delta ->
+            case model.state of
+                Menu -> (model, Cmd.none)
+                Play playState ->
+                    let
+                        newBird = updateBird (inSeconds delta) playState.bird
+                        newPlayState = { playState | bird = newBird }
+                    in
+                        ({ model | state = Play newPlayState }, Cmd.none)
 
+updatePipes :
+
+updateBird : Float -> Bird -> Bird
+updateBird delta bird =
+    { x = bird.x + delta * birdSpeed
+    , y = bird.y + delta*bird.dy - 0.5*delta*delta*gravity
+    , dy = bird.dy - delta*gravity
+    }
 
 -- SUBSCRIPTIONS
 
@@ -194,6 +224,7 @@ subscriptions model
     = Sub.batch
         [ Window.resizes Resize
         , Mouse.clicks MouseClick
+        , AnimationFrame.diffs GameUpdate
         ]
 
 -- MAIN
