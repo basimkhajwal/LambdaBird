@@ -1,12 +1,14 @@
 import Html exposing (Html, program)
-import Task
 
+import Task
 import Window
 import AnimationFrame
+import Mouse
 
 import Color exposing (..)
 import Collage exposing (..)
 import Element exposing (..)
+import Transform
 import Text exposing (..)
 
 -- CONSTANTS
@@ -16,6 +18,21 @@ canvasSize =
     { width = 1000
     , height = 600
     }
+    
+birdSpeed : Float
+birdSpeed = 100
+
+gravity : Float
+gravity = 100
+
+birdSize : Float
+birdSize = 30
+
+pipeWidth : Float
+pipeWidth = 50
+
+pipeGreen : Color
+pipeGreen = rgb 20 200 20
 
 menuBackground : Form
 menuBackground =
@@ -23,9 +40,27 @@ menuBackground =
         |> filled (rgb 230 230 230)
 
 -- MODEL
+
+type alias Bird =
+    { x : Float
+    , y : Float
+    , dy: Float
+    }
+
+type alias Pipe = 
+    { x: Float
+    , height: Float
+    , up: Bool
+    }
+    
+type alias PlayState =
+    { bird : Bird
+    , pipes : List Pipe
+    }
+
 type GameState
     = Menu
-    | Play
+    | Play PlayState
 
 type alias Model =
     { size : Window.Size
@@ -50,33 +85,91 @@ init =
         ( startModel
         , Task.attempt resizeTask Window.size
         )
+        
+initGame : PlayState
+initGame = 
+    { bird =
+        { x = 0
+        , y = 0
+        , dy = 0
+        }
+    , pipes =
+        [ { x = 100
+          , height = 200
+          , up = True
+          }
+        , { x = -200
+          , height = 150
+          , up = False
+          }
+        ]
+    }
 
 -- MESSAGES
 
 type Msg
     = NoOp
     | Resize Window.Size
+    | MouseClick Mouse.Position
     | StartGame
 
 -- VIEW
 view : Model -> Html Msg
-view model = menuModel model
-
-menuModel : Model -> Html Msg
-menuModel model =
+view model = 
+    makeCanvas model <|
+        case model.state of
+            Menu -> menuModel
+            Play state -> gameModel state
+            
+makeCanvas : Model -> List Form -> Html Msg
+makeCanvas model items =
     toHtml <|
     container model.size.width model.size.height middle <|
-    collage canvasSize.width canvasSize.height
-        [ menuBackground
-        , move (0, 250) <|
-          text (
-            fromString "Lambda Bird"
-            |> monospace
-            |> Text.height 35
-            |> Text.color darkRed
-            |> bold
-          )
-        ]
+    collage canvasSize.width canvasSize.height items
+
+drawPipe : Pipe -> Form
+drawPipe pipe = 
+    rect pipeWidth pipe.height
+        |> filled pipeGreen
+        |> move (pipe.x, -pipe.height/2)
+        |>  if pipe.up then
+                move (0, (toFloat canvasSize.height) / 2)
+            else
+                move (0, pipe.height - (toFloat canvasSize.height) / 2)
+    
+drawBird : Bird -> Form
+drawBird bird = 
+    rect birdSize birdSize
+    |> filled red
+
+gameModel : PlayState -> List Form
+gameModel state = 
+    let
+        bird = drawBird state.bird
+        pipes = List.map drawPipe state.pipes
+        worldToScreen = Transform.translation -state.bird.x 0
+    in
+        [groupTransform worldToScreen (bird :: pipes)]
+
+menuModel : List Form
+menuModel =
+    [ menuBackground
+    , move (0, 250) <|
+      text (
+        fromString "Lambda Bird"
+        |> monospace
+        |> Text.height 35
+        |> Text.color darkRed
+        |> bold
+      )
+    , move (0, 0) <|
+      text (
+        fromString "Click to start"
+        |> monospace
+        |> Text.height 25
+        |> Text.color (rgb 20 20 20)
+      )
+    ]
 
 -- UPDATE
 
@@ -85,7 +178,14 @@ update msg model =
     case msg of
         NoOp -> (model, Cmd.none)
         Resize size -> ({ model | size = size}, Cmd.none)
-        StartGame -> ({ model | state = Play}, Cmd.none)
+        StartGame -> ({ model | state = Play initGame}, Cmd.none)
+        MouseClick pos ->
+            case model.state of
+                Menu -> (model, Task.perform identity (Task.succeed StartGame))
+                Play playState ->
+                    ({ model | state = Play {playState | }}, Cmd.none)
+                    
+
 
 -- SUBSCRIPTIONS
 
@@ -93,6 +193,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model
     = Sub.batch
         [ Window.resizes Resize
+        , Mouse.clicks MouseClick
         ]
 
 -- MAIN
