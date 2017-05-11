@@ -1,9 +1,11 @@
-import Html exposing (Html, program)
 
+import Html exposing (Html, program)
+import Time exposing (..)
 import Task
+import Random
+
 import Window
 import AnimationFrame
-import Time exposing (..)
 import Mouse
 
 import Color exposing (..)
@@ -38,76 +40,56 @@ pipeWidth = 50
 pipeSpacing : Float
 pipeSpacing = 200
 
+gapHeight : Float
+gapHeight = 120
+
 pipeGreen : Color
 pipeGreen = rgb 20 200 20
 
-menuBackground : Form
-menuBackground =
-    rect (toFloat canvasSize.width) (toFloat canvasSize.height)
-        |> filled (rgb 230 230 230)
+bgColor : Color
+bgColor = rgb 230 230 230
 
 -- MODEL
 
-type alias Bird =
-    { x : Float
-    , y : Float
-    , dy: Float
-    }
-
-type alias Pipe = 
+type alias Pipe =
     { x: Float
-    , height: Float
-    , up: Bool
-    }
-    
-type alias PlayState =
-    { bird : Bird
-    , pipes : List Pipe
+    , y: Float
     }
 
 type GameState
     = Menu
-    | Play PlayState
+    | Play
 
 type alias Model =
     { size : Window.Size
     , state : GameState
+    , x : Float
+    , y : Float
+    , dy : Float
+    , lastPipeX : Float
+    , pipes : List Pipe
     }
 
 init : ( Model, Cmd Msg )
 init =
-    let
-        resizeTask : Result x Window.Size -> Msg
+    let resizeTask : Result x Window.Size -> Msg
         resizeTask res =
             case res of
                 Ok size -> Resize size
                 Err _ -> NoOp
+    in (startModel, Task.attempt resizeTask Window.size)
 
-        startModel : Model
-        startModel =
-            { size = Window.Size 0 0
-            , state = Menu
-            }
-    in
-        ( startModel
-        , Task.attempt resizeTask Window.size
-        )
-        
-initGame : PlayState
-initGame = 
-    { bird =
-        { x = 0
-        , y = 0
-        , dy = 0
-        }
+startModel : Model
+startModel =
+    { size = Window.Size 0 0
+    , state = Menu
+    , x = 0
+    , y = 0
+    , dy = 0
+    , lastPipeX = 600
     , pipes =
-        [ { x = 100
-          , height = 200
-          , up = True
-          }
-        , { x = -200
-          , height = 150
-          , up = False
+        [ { x = 600
+          , y = 200
           }
         ]
     }
@@ -119,65 +101,69 @@ type Msg
     | Resize Window.Size
     | MouseClick Mouse.Position
     | GameUpdate Time
+    | GeneratePipe Float
     | StartGame
 
 -- VIEW
 view : Model -> Html Msg
-view model = 
-    makeCanvas model <|
-        case model.state of
+view model =
+    makeCanvas model
+    <| case model.state of
             Menu -> menuModel
-            Play state -> gameModel state
-            
+            Play -> gameModel model
+
 makeCanvas : Model -> List Form -> Html Msg
 makeCanvas model items =
-    toHtml <|
-    container model.size.width model.size.height middle <|
-    collage canvasSize.width canvasSize.height items
+    toHtml
+    <| container model.size.width model.size.height middle
+    <| collage canvasSize.width canvasSize.height items
 
 drawPipe : Pipe -> Form
-drawPipe pipe = 
-    rect pipeWidth pipe.height
-        |> filled pipeGreen
-        |> move (pipe.x, -pipe.height/2)
-        |>  if pipe.up then
-                move (0, (toFloat canvasSize.height) / 2)
-            else
-                move (0, pipe.height - (toFloat canvasSize.height) / 2)
-    
-drawBird : Bird -> Form
-drawBird bird = 
+drawPipe pipe =
+    group
+    [ rect pipeWidth (toFloat canvasSize.height)
+      |> filled pipeGreen
+      |> move (pipe.x, 0)
+    , rect (pipeWidth+2) gapHeight
+      |> filled bgColor
+      |> move (pipe.x, pipe.y)
+    ]
+
+drawBird : Model -> Form
+drawBird model =
     rect birdSize birdSize
     |> filled red
-    |> move (bird.x, bird.y)
+    |> move (model.x, model.y)
 
-gameModel : PlayState -> List Form
-gameModel state = 
+gameModel : Model -> List Form
+gameModel model =
     let
-        bird = drawBird state.bird
-        pipes = List.map drawPipe state.pipes
-        worldToScreen = Transform.translation -state.bird.x 0
+        bird = drawBird model
+        pipes = List.map drawPipe model.pipes
+        worldToScreen = Transform.translation -model.x 0
     in
-        [groupTransform worldToScreen (bird :: pipes)]
+        [ rect (toFloat canvasSize.width) (toFloat canvasSize.height)
+          |> filled bgColor
+        , groupTransform worldToScreen pipes
+        , groupTransform worldToScreen [bird]
+        ]
 
 menuModel : List Form
 menuModel =
-    [ menuBackground
-    , move (0, 250) <|
-      text (
-        fromString "Lambda Bird"
-        |> monospace
-        |> Text.height 35
-        |> Text.color darkRed
-        |> bold
-      )
-    , move (0, 0) <|
-      text (
-        fromString "Click to start"
-        |> monospace
-        |> Text.height 25
-        |> Text.color (rgb 20 20 20)
-      )
+    [ rect (toFloat canvasSize.width) (toFloat canvasSize.height)
+      |> filled bgColor
+    , fromString "Lambda Bird"
+      |> monospace
+      |> Text.height 35
+      |> Text.color darkRed
+      |> bold
+      |> text
+      |> move (0, 250)
+    , fromString "Click to start"
+      |> monospace
+      |> Text.height 25
+      |> Text.color (rgb 20 20 20)
+      |> text
     ]
 
 -- UPDATE
@@ -187,35 +173,66 @@ update msg model =
     case msg of
         NoOp -> (model, Cmd.none)
         Resize size -> ({ model | size = size}, Cmd.none)
-        StartGame -> ({ model | state = Play initGame}, Cmd.none)
+        StartGame -> ({ model | state = Play}, Cmd.none)
+
+        GeneratePipe y ->
+            let
+                newPipe =
+                    { x = model.lastPipeX + pipeSpacing
+                    , y = y
+                    }
+            in
+                ( { model
+                  | pipes = newPipe :: model.pipes
+                  , lastPipeX = newPipe.x
+                  }
+                , Cmd.none
+                )
+
         MouseClick pos ->
             case model.state of
                 Menu -> update StartGame model
-                Play playState ->
-                    let
-                        oldBird = playState.bird
-                        newBird = { oldBird | dy = birdJump }
-                        newPlayState = { playState | bird = newBird }
-                    in
-                        ({ model | state = Play newPlayState }, Cmd.none)
+                Play -> ({ model | dy = birdJump}, Cmd.none)
+
         GameUpdate delta ->
             case model.state of
                 Menu -> (model, Cmd.none)
-                Play playState ->
-                    let
-                        newBird = updateBird (inSeconds delta) playState.bird
-                        newPlayState = { playState | bird = newBird }
-                    in
-                        ({ model | state = Play newPlayState }, Cmd.none)
+                Play ->
+                    model
+                    |> updateBird (inSeconds delta)
+                    |> filterPipes
+                    |> updatePipes
 
-updatePipes :
-
-updateBird : Float -> Bird -> Bird
-updateBird delta bird =
-    { x = bird.x + delta * birdSpeed
-    , y = bird.y + delta*bird.dy - 0.5*delta*delta*gravity
-    , dy = bird.dy - delta*gravity
+updateBird : Float -> Model -> Model
+updateBird delta model =
+    { model
+    | x = model.x + delta * birdSpeed
+    , y = model.y + delta*model.dy - 0.5*delta*delta*gravity
+    , dy = model.dy - delta*gravity
     }
+
+filterPipes : Model -> Model
+filterPipes model =
+    { model
+    | pipes =
+        List.filter (\p -> p.x - model.x > -(toFloat canvasSize.width)/2 - 50) model.pipes
+    }
+
+updatePipes : Model -> (Model, Cmd Msg)
+updatePipes model =
+    let
+        updateRequired = model.lastPipeX < model.x + (toFloat canvasSize.width) / 2.0 - 50
+
+        pipeBound : Float
+        pipeBound = gapHeight/2 + 10 - (toFloat canvasSize.height)/2
+
+        generatePipe : Cmd Msg
+        generatePipe = Random.generate GeneratePipe (Random.float -pipeBound pipeBound)
+    in
+        if updateRequired then
+            (model, generatePipe)
+        else
+            (model, Cmd.none)
 
 -- SUBSCRIPTIONS
 
