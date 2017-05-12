@@ -1,0 +1,100 @@
+module Model exposing (..)
+
+import Color exposing (..)
+import Mouse
+import Task
+import Time exposing (Time)
+import Window
+
+-- MODEL
+
+type alias Pipe =
+    { x: Float
+    , y: Float
+    }
+
+type GameState
+    = Menu
+    | Play
+
+type alias Model =
+    { size : Window.Size
+    , state : GameState
+    , x : Float
+    , y : Float
+    , dy : Float
+    , lastPipeX : Float
+    , falling : Bool
+    , pipes : List Pipe
+    }
+
+init : ( Model, Cmd Msg )
+init =
+    let resizeTask : Result x Window.Size -> Msg
+        resizeTask res =
+            case res of
+                Ok size -> Resize size
+                Err _ -> NoOp
+    in (startModel, Task.attempt resizeTask Window.size)
+
+startModel : Model
+startModel =
+    { size = Window.Size 0 0
+    , state = Menu
+    , x = 0
+    , y = 0
+    , dy = 0
+    , falling = False
+    , lastPipeX = 600
+    , pipes =
+        [ { x = 600
+          , y = 200
+          }
+        ]
+    }
+
+-- MESSAGES
+
+type Msg
+    = NoOp
+    | Resize Window.Size
+    | MouseClick Mouse.Position
+    | GameUpdate Time
+    | GeneratePipe Float
+    | StartGame
+    | EndGame
+
+-- CONSTANTS
+
+canvasSize : Window.Size
+canvasSize =
+    { width = 1000
+    , height = 600
+    }
+
+birdSpeed : Float
+birdSpeed = 100
+
+birdJump : Float
+birdJump = 250
+
+gravity : Float
+gravity = 300
+
+birdSize : Float
+birdSize = 30
+
+pipeWidth : Float
+pipeWidth = 50
+
+pipeSpacing : Float
+pipeSpacing = 200
+
+gapHeight : Float
+gapHeight = 120
+
+pipeGreen : Color
+pipeGreen = rgb 20 200 20
+
+bgColor : Color
+bgColor = rgb 230 230 230
