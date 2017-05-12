@@ -37,15 +37,12 @@ update msg model =
                         ({ model | dy = birdJump}, Cmd.none)
 
         GameUpdate delta ->
-            case model.state of
-                Menu -> (model, Cmd.none)
-                Play ->
-                    model
-                    |> updateFalling
-                    |> updateBird (inSeconds delta)
-                    |> filterPipes
-                    |> updatePipes
-                    |> updateDeath
+            model
+            |> updateFalling
+            |> updateBird (inSeconds delta)
+            |> filterPipes
+            |> updatePipes
+            |> updateDeath
 
 updateFalling : Model -> Model
 updateFalling model =
@@ -58,8 +55,11 @@ updateFalling model =
             |> List.filter (\p -> abs (p.x - model.x) <= positionDist)
             |> List.any (\p -> abs (p.y - model.y) + birdSize/2 >= gapHeight/2)
     in
-        if pipeCollision then
-            { model | falling = True }
+        if pipeCollision && not model.falling then
+            { model
+            | falling = True
+            , dy = 0
+            }
         else
             model
 
@@ -83,7 +83,7 @@ updateBird delta model =
     in
         { model
         | x = model.x + delta * xSpeed
-        , y = model.y + delta*model.dy - 0.5*delta*delta*gravity
+        , y = model.y + delta*model.dy-- - 0.5*delta*delta*gravity
         , dy = model.dy - delta*gravity
         }
 
