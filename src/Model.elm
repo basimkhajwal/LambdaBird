@@ -48,7 +48,7 @@ startModel =
     , lastPipeX = 600
     , pipes =
         [ { x = 600
-          , y = 200
+          , y = 0
           }
         ]
     }
@@ -68,18 +68,18 @@ type Msg
 
 canvasSize : Window.Size
 canvasSize =
-    { width = 1000
-    , height = 600
+    { width = 700
+    , height = 900
     }
 
 birdSpeed : Float
-birdSpeed = 100
+birdSpeed = 120
 
 birdJump : Float
-birdJump = 250
+birdJump = 300
 
 gravity : Float
-gravity = 300
+gravity = 500
 
 birdSize : Float
 birdSize = 30
@@ -88,7 +88,7 @@ pipeWidth : Float
 pipeWidth = 50
 
 pipeSpacing : Float
-pipeSpacing = 200
+pipeSpacing = 250
 
 gapHeight : Float
 gapHeight = 120
