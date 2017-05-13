@@ -4,7 +4,6 @@ A purely functional flappy bird clone written using the Elm programming language
 ## TODO
 - Add a score label to show the current score
 - Create an image for the lambda bird
-- Add proper graphics for the pipes
 - Create a logo for the menu
 - Add a death screen
 
