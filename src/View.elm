@@ -22,22 +22,6 @@ makeCanvas model items =
     <| container model.size.width model.size.height middle
     <| collage canvasSize.width canvasSize.height items
 
-drawPipe : Pipe -> Form
-drawPipe pipe =
-    group
-    [ rect pipeWidth (toFloat canvasSize.height)
-      |> filled pipeGreen
-      |> move (pipe.x, 0)
-    , rect (pipeWidth+2) gapHeight
-      |> filled bgColor
-      |> move (pipe.x, pipe.y)
-    ]
-
-drawBird : Model -> Form
-drawBird model =
-    rect birdSize birdSize
-    |> filled red
-    |> move (model.x, model.y)
 
 backgroundImg : Form
 backgroundImg =
@@ -51,6 +35,40 @@ groundImg =
     tiledImage (canvasSize.width*2) 112 "../assets/land.png"
     |> toForm
     |> move ((toFloat canvasSize.width) / 2, 112/2-(toFloat canvasSize.height)/2)
+
+pipeImg : Form
+pipeImg =
+    tiledImage 52 canvasSize.height "../assets/pipe.png"
+    |> toForm
+
+pipeUpImg : Form
+pipeUpImg =
+    tiledImage 52 26 "../assets/pipe-up.png"
+    |> toForm
+
+pipeDownImg : Form
+pipeDownImg =
+    tiledImage 52 26 "../assets/pipe-down.png"
+    |> toForm
+
+drawPipe : Pipe -> Form
+drawPipe pipe =
+    group
+        [ pipeImg
+          |> move (pipe.x, pipe.y + gapHeight/2 + (toFloat canvasSize.height)/2)
+        , pipeImg
+          |> move (pipe.x, pipe.y - gapHeight/2 - (toFloat canvasSize.height)/2)
+        , pipeDownImg
+          |> move (pipe.x, pipe.y + gapHeight/2 + 13)
+        , pipeUpImg
+          |> move (pipe.x, pipe.y - gapHeight/2 - 13)
+        ]
+
+drawBird : Model -> Form
+drawBird model =
+    rect birdSize birdSize
+    |> filled red
+    |> move (model.x, model.y)
 
 drawGround : Model -> Form
 drawGround model =

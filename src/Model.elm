@@ -85,7 +85,7 @@ birdSize : Float
 birdSize = 30
 
 pipeWidth : Float
-pipeWidth = 50
+pipeWidth = 52
 
 pipeSpacing : Float
 pipeSpacing = 250
