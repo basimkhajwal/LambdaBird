@@ -91,10 +91,10 @@ pipeSpacing : Float
 pipeSpacing = 250
 
 gapHeight : Float
-gapHeight = 120
+gapHeight = 220
 
 pipeGreen : Color
 pipeGreen = rgb 20 200 20
 
 bgColor : Color
-bgColor = rgb 230 230 230
+bgColor = rgb 78 192 202
