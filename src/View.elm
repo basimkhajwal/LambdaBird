@@ -39,6 +39,23 @@ drawBird model =
     |> filled red
     |> move (model.x, model.y)
 
+backgroundImg : Form
+backgroundImg =
+    tiledImage canvasSize.width 109 "../assets/sky.png"
+    |> toForm
+    |> scale 2
+    |> move (0, 112 + 109 - (toFloat canvasSize.height)/2)
+
+groundImg : Form
+groundImg =
+    tiledImage (canvasSize.width*2) 112 "../assets/land.png"
+    |> toForm
+    |> move ((toFloat canvasSize.width) / 2, 112/2-(toFloat canvasSize.height)/2)
+
+drawGround : Model -> Form
+drawGround model =
+    move (-1.0 * toFloat ((ceiling model.x) % 336), 0) groundImg
+
 gameModel : Model -> List Form
 gameModel model =
     let
@@ -48,6 +65,8 @@ gameModel model =
     in
         [ rect (toFloat canvasSize.width) (toFloat canvasSize.height)
           |> filled bgColor
+        , backgroundImg
+        , drawGround model
         , groupTransform worldToScreen pipes
         , groupTransform worldToScreen [bird]
         ]
@@ -56,6 +75,8 @@ menuModel : List Form
 menuModel =
     [ rect (toFloat canvasSize.width) (toFloat canvasSize.height)
       |> filled bgColor
+    , backgroundImg
+    , groundImg
     , fromString "Lambda Bird"
       |> monospace
       |> Text.height 35
