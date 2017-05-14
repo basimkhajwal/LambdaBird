@@ -65,8 +65,10 @@ updateFalling model =
 
 updateDeath : (Model, Cmd Msg) -> (Model, Cmd Msg)
 updateDeath (model, msg) =
-    if model.y <= -(toFloat canvasSize.height)/2 then
-        ( model
+    if model.y <= 112-(toFloat canvasSize.height)/2 then
+        ( { model
+          | dy = 0
+          }
         , Task.perform identity (Task.succeed EndGame)
         )
     else
@@ -100,10 +102,10 @@ updatePipes model =
         updateRequired = model.lastPipeX < model.x + (toFloat canvasSize.width) / 2.0 - 50
 
         pipeBound : Float
-        pipeBound = gapHeight/2 + 10 - (toFloat canvasSize.height)/2
+        pipeBound = (toFloat canvasSize.height)/2 - gapHeight/2 - 50
 
         generatePipe : Cmd Msg
-        generatePipe = Random.generate GeneratePipe (Random.float -pipeBound pipeBound)
+        generatePipe = Random.generate GeneratePipe (Random.float (-pipeBound+112) pipeBound)
     in
         if updateRequired then
             (model, generatePipe)
