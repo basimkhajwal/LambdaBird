@@ -84,9 +84,9 @@ gameModel model =
         [ rect (toFloat canvasSize.width) (toFloat canvasSize.height)
           |> filled bgColor
         , backgroundImg
-        , drawGround model
         , groupTransform worldToScreen pipes
         , groupTransform worldToScreen [bird]
+        , drawGround model
         ]
 
 menuModel : List Form
