@@ -17,6 +17,9 @@ view model =
             Menu -> menuModel
             Play -> gameModel model
 
+assetPath : String -> String
+assetPath file = "../assets" ++ file
+
 makeCanvas : Model -> List Form -> Html Msg
 makeCanvas model items =
     let
@@ -26,42 +29,42 @@ makeCanvas model items =
             <| collage canvasSize.width canvasSize.height items
     in
         Html.div []
-            [ Html.node "link" [rel "stylesheet", type_ "text/css", href "../assets/fonts.css"] []
+            [ Html.node "link" [rel "stylesheet", type_ "text/css", href (assetPath "fonts.css")] []
             , canvas
             ]
 
 
 backgroundImg : Form
 backgroundImg =
-    tiledImage canvasSize.width 109 "../assets/sky.png"
+    tiledImage canvasSize.width 109 (assetPath "sky.png")
     |> toForm
     |> scale 2
     |> move (0, 112 + 109 - (toFloat canvasSize.height)/2)
 
 groundImg : Form
 groundImg =
-    tiledImage (canvasSize.width*2) 112 "../assets/land.png"
+    tiledImage (canvasSize.width*2) 112 (assetPath "land.png")
     |> toForm
     |> move ((toFloat canvasSize.width) / 2, 112/2-(toFloat canvasSize.height)/2)
 
 pipeImg : Form
 pipeImg =
-    tiledImage 52 canvasSize.height "../assets/pipe.png"
+    tiledImage 52 canvasSize.height (assetPath "pipe.png")
     |> toForm
 
 pipeUpImg : Form
 pipeUpImg =
-    tiledImage 52 26 "../assets/pipe-up.png"
+    tiledImage 52 26 (assetPath "pipe-up.png")
     |> toForm
 
 pipeDownImg : Form
 pipeDownImg =
-    tiledImage 52 26 "../assets/pipe-down.png"
+    tiledImage 52 26 (assetPath "pipe-down.png")
     |> toForm
 
 birdImg : Form
 birdImg =
-    image (round birdSize) (round birdSize) "../assets/bird.png"
+    image (round birdSize) (round birdSize) (assetPath "bird.png")
     |> toForm
 
 drawPipe : Pipe -> Form
@@ -95,7 +98,7 @@ getScore model =
 
 scoreTextStyle : Style
 scoreTextStyle =
-    { typeface = ["impact"]
+    { typeface = ["FlappyBirdNum"]
     , height = Just 60
     , color = rgb 250 250 250
     , bold = False
