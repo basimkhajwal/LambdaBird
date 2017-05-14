@@ -86,6 +86,23 @@ drawGround : Model -> Form
 drawGround model =
     move (-1.0 * toFloat ((ceiling model.x) % 336), 0) groundImg
 
+getScore : Model -> Int
+getScore model =
+    if floor model.x >= 600 then
+        1 + floor((model.x - 600) / pipeSpacing)
+    else
+        0
+
+scoreTextStyle : Style
+scoreTextStyle =
+    { typeface = ["impact"]
+    , height = Just 60
+    , color = rgb 250 250 250
+    , bold = False
+    , italic = False
+    , line = Nothing
+    }
+
 gameModel : Model -> List Form
 gameModel model =
     let
@@ -99,6 +116,19 @@ gameModel model =
         , groupTransform worldToScreen pipes
         , groupTransform worldToScreen [bird]
         , drawGround model
+        , getScore model
+          |> toString
+          |> fromString
+          |> style { scoreTextStyle | color = darkGray }
+          |> text
+          |> scale 1.1
+          |> move (0, 350)
+        , getScore model
+          |> toString
+          |> fromString
+          |> style scoreTextStyle
+          |> text
+          |> move (0, 350)
         ]
 
 flappyTextStyle : Style
