@@ -43,7 +43,7 @@ startModel =
     , state = Menu
     , x = 0
     , y = 0
-    , dy = 0
+    , dy = birdJump
     , falling = False
     , lastPipeX = 600
     , pipes =
@@ -92,9 +92,6 @@ pipeSpacing = 250
 
 gapHeight : Float
 gapHeight = 220
-
-pipeGreen : Color
-pipeGreen = rgb 20 200 20
 
 bgColor : Color
 bgColor = rgb 78 192 202
