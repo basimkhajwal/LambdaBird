@@ -4,6 +4,7 @@ import Collage exposing (..)
 import Color exposing (..)
 import Element exposing (..)
 import Html exposing (Html)
+import Html.Attributes exposing (rel, type_, href)
 import Text exposing (..)
 import Transform
 
@@ -18,9 +19,16 @@ view model =
 
 makeCanvas : Model -> List Form -> Html Msg
 makeCanvas model items =
-    toHtml
-    <| container model.size.width model.size.height middle
-    <| collage canvasSize.width canvasSize.height items
+    let
+        canvas =
+            toHtml
+            <| container model.size.width model.size.height middle
+            <| collage canvasSize.width canvasSize.height items
+    in
+        Html.div []
+            [ Html.node "link" [rel "stylesheet", type_ "text/css", href "../assets/fonts.css"] []
+            , canvas
+            ]
 
 
 backgroundImg : Form
@@ -51,6 +59,11 @@ pipeDownImg =
     tiledImage 52 26 "../assets/pipe-down.png"
     |> toForm
 
+birdImg : Form
+birdImg =
+    image (round birdSize) (round birdSize) "../assets/bird.png"
+    |> toForm
+
 drawPipe : Pipe -> Form
 drawPipe pipe =
     group
@@ -66,8 +79,7 @@ drawPipe pipe =
 
 drawBird : Model -> Form
 drawBird model =
-    rect birdSize birdSize
-    |> filled red
+    birdImg
     |> move (model.x, model.y)
 
 drawGround : Model -> Form
@@ -89,23 +101,36 @@ gameModel model =
         , drawGround model
         ]
 
+flappyTextStyle : Style
+flappyTextStyle =
+    { typeface = ["FlappyBirdText"]
+    , height = Just 125
+    , color = darkBlue
+    , bold = True
+    , italic = False
+    , line = Nothing
+    }
+
 menuModel : List Form
 menuModel =
     [ rect (toFloat canvasSize.width) (toFloat canvasSize.height)
       |> filled bgColor
     , backgroundImg
     , groundImg
-    , fromString "Lambda Bird"
-      |> monospace
-      |> Text.height 35
-      |> Text.color darkRed
-      |> bold
+    , fromString "LAMBDA BIRD"
+      |> style flappyTextStyle
       |> text
       |> move (0, 250)
-    , fromString "Click to start"
-      |> monospace
-      |> Text.height 25
-      |> Text.color (rgb 20 20 20)
+    , birdImg
+      |> scale 1
+      |> move (0, 50)
+    , fromString "CLICK to START"
+      |> style
+          { flappyTextStyle
+          | height = Just 55
+          , color = black
+          }
       |> text
+      |> move (0, -50)
     ]
 

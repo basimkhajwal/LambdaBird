@@ -1,0 +1,9 @@
+@font-face {
+    font-family: 'FlappyBirdText';
+    src: url('font.ttf');
+}
+
+@font-face {
+    font-family: 'FlappyBirdNum';
+    src: url('numbers.ttf');
+}

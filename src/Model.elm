@@ -82,7 +82,7 @@ gravity : Float
 gravity = 500
 
 birdSize : Float
-birdSize = 30
+birdSize = 45
 
 pipeWidth : Float
 pipeWidth = 52
