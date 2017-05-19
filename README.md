@@ -1,7 +1,7 @@
 # LambdaBird
 
-<p>
-  <img src="assets/bird.png" alt="Logo" align="left" height="30" width="30"/>
+<p align="left">
+  <img src="assets/bird.png" alt="Logo" height="30" width="30"/>
 </p>
 
 # Overview
