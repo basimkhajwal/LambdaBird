@@ -18,7 +18,7 @@ view model =
             Play -> gameModel model
 
 assetPath : String -> String
-assetPath file = "../assets" ++ file
+assetPath file = "../assets/" ++ file
 
 makeCanvas : Model -> List Form -> Html Msg
 makeCanvas model items =
