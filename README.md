@@ -11,6 +11,6 @@ The core game is now complete but there is still as annoying bug (I don't think 
 ### Live Preview
 
 You can preview the compiled game at:
-https://github.com/basimkhajwal/LambdaBird/blob/master/dist/index.html
+https://htmlpreview.github.io/?https://github.com/basimkhajwal/LambdaBird/blob/master/dist/index.html
 
 Note: The fonts don't load correctly on the preview
